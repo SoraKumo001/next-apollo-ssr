@@ -7,7 +7,7 @@ const App = ({ Component, pageProps }: AppProps) => {
   const client = new ApolloClient({
     uri:
       typeof window === 'undefined'
-        ? 'http://localhost:3000/api/graphql'
+        ? `${process.env.NEXT_PUBLIC_REACT_APP_API_URL || 'http://localhost:3000'}/api/graphql`
         : `${location.origin}/api/graphql`,
     cache: new InMemoryCache(),
   });
