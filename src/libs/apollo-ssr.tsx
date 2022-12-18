@@ -8,7 +8,7 @@ import {
   TypedDocumentNode,
   useApolloClient,
 } from '@apollo/client';
-import { useContext } from 'react';
+import { ReactNode, useContext } from 'react';
 
 export class SSRCache extends SuspenseCache {
   add<TData = any, TVariables extends OperationVariables = OperationVariables>(
@@ -30,7 +30,8 @@ export class SSRCache extends SuspenseCache {
 }
 
 const DATA_NAME = '__NEXT_DATA_PROMISE__';
-export const DataRender = () => {
+
+const DataRender = () => {
   const client = useApolloClient();
   const context = useContext(getApolloContext());
   const cache = context.suspenseCache;
@@ -61,4 +62,15 @@ export const initApolloCache = <T,>(clinet: ApolloClient<T>) => {
     const node = document.getElementById(DATA_NAME);
     if (node) clinet.restore(JSON.parse(node.innerHTML));
   }
+};
+
+export const SSRProvider = ({ children }: { children: ReactNode }) => {
+  const client = useApolloClient();
+  initApolloCache(client);
+  return (
+    <>
+      {children}
+      <DataRender />
+    </>
+  );
 };

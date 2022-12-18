@@ -1,27 +1,21 @@
-import { useSuspenseQuery_experimental as useSuspenseQuery } from '@apollo/client';
-import { gql } from 'apollo-server-micro';
+import { gql, useSuspenseQuery_experimental as useSuspenseQuery } from '@apollo/client';
 
-const SAY_HELLO = gql`
+// 日付を取り出すQuery
+const QUERY = gql`
   query date {
     date
   }
 `;
 
 const Page = () => {
-  const { data, refetch } = useSuspenseQuery(SAY_HELLO);
+  const { data, refetch } = useSuspenseQuery(QUERY);
   return (
-    <div>
+    <>
+      <button onClick={() => refetch()}>Reload</button>
       <div>
-        <button
-          onClick={() => {
-            refetch();
-          }}
-        >
-          Reload
-        </button>
+        {data?.date && new Date(data.date).toLocaleString('ja-jp', { timeZone: 'Asia/Tokyo' })}
       </div>
-      {data?.date && new Date(data.date).toLocaleString('ja-jp', { timeZone: 'Asia/Tokyo' })}
-    </div>
+    </>
   );
 };
 
