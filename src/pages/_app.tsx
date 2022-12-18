@@ -7,8 +7,10 @@ const App = ({ Component, pageProps }: AppProps) => {
   const client = new ApolloClient({
     uri:
       typeof window === 'undefined'
-        ? `${process.env.NEXT_PUBLIC_REACT_APP_API_URL || 'http://localhost:3000'}/api/graphql`
-        : `${location.origin}/api/graphql`,
+        ? `${
+            process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
+          }/api/graphql`
+        : `/api/graphql`,
     cache: new InMemoryCache(),
   });
   initApolloCache(client);
