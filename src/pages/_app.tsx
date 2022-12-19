@@ -1,18 +1,19 @@
-import type { AppProps } from 'next/app';
+import type { AppType } from 'next/app';
 import { Suspense } from 'react';
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import { SSRCache, SSRProvider } from '../libs/apollo-ssr';
 
 const endpoint = '/api/graphql';
+const uri =
+  typeof window === 'undefined'
+    ? `${
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
+      }${endpoint}`
+    : endpoint;
 
-const App = ({ Component, pageProps }: AppProps) => {
+const App: AppType = ({ Component, pageProps }) => {
   const client = new ApolloClient({
-    uri:
-      typeof window === 'undefined'
-        ? `${
-            process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
-          }${endpoint}`
-        : endpoint,
+    uri,
     cache: new InMemoryCache(),
   });
 

@@ -22,7 +22,9 @@ export class SSRCache extends SuspenseCache {
       observable: ObservableQuery<TData, TVariables>;
     }
   ) {
-    this.promises.add(promise);
+    if (typeof window === 'undefined') {
+      this.promises.add(promise);
+    }
     return super.add(query, variables, { promise, observable });
   }
   finished = false;
@@ -38,12 +40,8 @@ const DataRender = () => {
   if (!(cache instanceof SSRCache)) {
     throw new Error('SSRCache missing.');
   }
-  if (
-    typeof window === 'undefined' &&
-    !cache.finished &&
-    process.env.NEXT_PHASE !== 'phase-production-build'
-  ) {
-    throw Promise.all(cache.promises).then((v) => {
+  if (typeof window === 'undefined' && !cache.finished) {
+    throw Promise.allSettled(cache.promises).then((v) => {
       cache.finished = true;
       return v;
     });
