@@ -16,16 +16,18 @@ const QUERY = gql`
   }
 `;
 
+type PageData = {
+  Page: { media: { siteUrl: string; title: { english: string; native: string } }[] };
+};
+
 const Page = () => {
-  const { data, refetch } = useSuspenseQuery<{
-    Page: { media: { siteUrl: string; title: { english: string; native: string } }[] };
-  }>(QUERY);
+  const { data, refetch } = useSuspenseQuery<PageData>(QUERY);
   const client = useApolloClient();
   return (
     <>
       <button onClick={() => refetch()}>Reload</button>
       <button onClick={() => client.resetStore()}>Reset</button>
-      {data?.Page.media.map((v) => (
+      {data.Page.media.map((v) => (
         <div
           key={v.siteUrl}
           style={{ border: 'solid 1px', padding: '8px', margin: '8px', borderRadius: '4px' }}
