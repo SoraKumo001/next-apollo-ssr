@@ -1,7 +1,7 @@
 import type { AppType } from 'next/app';
 import { Suspense } from 'react';
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
-import { SSRCache, SSRProvider } from '../libs/apollo-ssr';
+import { SSRProvider } from '../libs/apollo-ssr';
 
 const endpoint = '/api/graphql';
 const uri =
@@ -14,11 +14,11 @@ const uri =
 const App: AppType = ({ Component, pageProps }) => {
   const client = new ApolloClient({
     uri,
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({}),
   });
 
   return (
-    <ApolloProvider client={client} suspenseCache={new SSRCache()}>
+    <ApolloProvider client={client}>
       <SSRProvider>
         <Suspense fallback={'Loading'}>
           <Component {...pageProps} />

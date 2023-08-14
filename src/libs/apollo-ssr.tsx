@@ -1,66 +1,69 @@
-import {
-  ApolloClient,
-  DocumentNode,
-  getApolloContext,
-  ObservableQuery,
-  OperationVariables,
-  SuspenseCache,
-  TypedDocumentNode,
-  useApolloClient,
-} from '@apollo/client';
-import { ReactNode, useContext } from 'react';
+import { ApolloClient, ObservableQuery, useApolloClient } from '@apollo/client';
+import { getSuspenseCache } from '@apollo/client/react/cache';
+import { InternalQueryReference } from '@apollo/client/react/cache/QueryReference';
+import { SuspenseCache, SuspenseCacheOptions } from '@apollo/client/react/cache/SuspenseCache';
+import { CacheKey } from '@apollo/client/react/cache/types';
+import { ReactNode } from 'react';
 
 export class SSRCache extends SuspenseCache {
-  add<TData = any, TVariables extends OperationVariables = OperationVariables>(
-    query: DocumentNode | TypedDocumentNode<TData, TVariables>,
-    variables: TVariables | undefined,
-    {
-      promise,
-      observable,
-    }: {
-      promise: Promise<any>;
-      observable: ObservableQuery<TData, TVariables>;
-    }
-  ) {
-    if (typeof window === 'undefined') {
-      this.promises.add(promise);
-    }
-    return super.add(query, variables, { promise, observable });
+  constructor(options: SuspenseCacheOptions = Object.create(null)) {
+    super(options);
   }
+  getQueryRef<TData = any>(cacheKey: CacheKey, createObservable: () => ObservableQuery<TData>) {
+    const ref = super.getQueryRef(cacheKey, createObservable);
+    this.refs.add(ref);
+    return ref;
+  }
+
   finished = false;
-  promises = new Set<Promise<unknown>>();
+  refs = new Set<InternalQueryReference<any>>();
 }
 
 const DATA_NAME = '__NEXT_DATA_PROMISE__';
 
 const DataRender = () => {
   const client = useApolloClient();
-  const context = useContext(getApolloContext());
-  const cache = context.suspenseCache;
-  if (!(cache instanceof SSRCache)) {
-    throw new Error('SSRCache missing.');
-  }
-  if (typeof window === 'undefined' && !cache.finished) {
-    throw Promise.allSettled(cache.promises).then((v) => {
-      cache.finished = true;
-      return v;
-    });
+  const cache = getSuspenseCache(client);
+  if (typeof window === 'undefined') {
+    if (!(cache instanceof SSRCache)) {
+      throw new Error('SSRCache missing.');
+    }
+    if (!cache.finished) {
+      throw Promise.allSettled(Array.from(cache.refs.values()).map(({ promise }) => promise)).then(
+        (v) => {
+          cache.finished = true;
+          return v;
+        }
+      );
+    }
   }
   return (
     <script
       id={DATA_NAME}
       type="application/json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(client.extract()) }}
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(client.extract()).replace(/</g, '\\u003c'),
+      }}
     />
   );
 };
 
-export const initApolloCache = <T,>(clinet: ApolloClient<T>) => {
+export const initApolloCache = <T,>(
+  client: ApolloClient<T> & {
+    [suspenseCacheSymbol]?: SuspenseCache;
+  }
+) => {
   if (typeof window !== 'undefined') {
     const node = document.getElementById(DATA_NAME);
-    if (node) clinet.restore(JSON.parse(node.innerHTML));
+    if (node) client.restore(JSON.parse(node.innerHTML));
+  } else {
+    if (!client[suspenseCacheSymbol]) {
+      client[suspenseCacheSymbol] = new SSRCache(client.defaultOptions.react?.suspense);
+    }
   }
 };
+
+const suspenseCacheSymbol = Symbol.for('apollo.suspenseCache');
 
 export const SSRProvider = ({ children }: { children: ReactNode }) => {
   const client = useApolloClient();
