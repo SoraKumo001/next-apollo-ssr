@@ -4,31 +4,29 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "next",
+    "dev": "rimraf .next && next",
     "start": "next start",
     "build": "next build",
     "lint:fix": "next lint --fix && prettier -w src"
   },
   "dependencies": {
     "@apollo/client": "^3.8.1",
-    "@apollo/server": "^4.9.1",
-    "@react-libraries/next-apollo-server": "^1.0.0",
-    "@types/formidable": "^3.4.1",
-    "formidable": "^3.5.0",
-    "graphql": "^16.7.1",
-    "next": "^13.4.13",
+    "@react-libraries/apollo-ssr": "^0.0.2",
+    "graphql": "^16.8.0",
+    "next": "13.4.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.5.0",
     "@types/react": "18.2.20",
-    "@typescript-eslint/eslint-plugin": "^6.3.0",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
     "eslint": "8.47.0",
-    "eslint-config-next": "13.4.13",
+    "eslint-config-next": "13.4.16",
     "eslint-config-prettier": "^9.0.0",
     "prettier": "^3.0.1",
-    "typescript": "5.1.6"
+    "typescript": "5.1.6",
+    "rimraf": "^5.0.1"
   },
   "author": "SoraKumo <info@croud.jp>",
   "repository": "https://github.com/SoraKumo001/next-apollo-ssr"
